@@ -13,7 +13,7 @@ It is designed for interview presentation and demonstrates how a real platform c
 
 ```mermaid
 flowchart LR
-    subgraph Platform
+    subgraph Sample
         A[Platform.Identity] --> B[Platform.DotNetApi]
         B --> C[Platform.WebClient]
         B --> D[ThirdParty.Consumer]
@@ -31,13 +31,17 @@ flowchart LR
     E -->|data resources| D
 ```
 
+> Note: this diagram describes the current sample implementation. In a real DocuWare browser WebClient, the UI is typically closer to a frontend client calling `Platform.RestApi` directly, while the `.NET API` remains an optional SDK wrapper for third-party .NET applications.
+
 ## Component Responsibilities
 
 - **Platform.Identity**: simplified identity provider and token service. In a real product, this would be replaced with OAuth/OpenID Connect or a centralized token service.
 - **Platform.RestApi**: core REST platform exposing document resources and platform APIs.
 - **Platform.DotNetApi**: .NET SDK wrapper that encapsulates REST requests and exposes a developer-friendly client interface (`IDocuwareClient`).
-- **Platform.WebClient**: MVC platform application that consumes `Platform.DotNetApi` to show how an official platform product can build on the SDK.
+- **Platform.WebClient**: MVC platform application in this sample that consumes `Platform.DotNetApi` to demonstrate a platform UI built on the SDK.
 - **ThirdParty.Consumer**: external consumer app simulating a third-party integration that references the SDK DLL and calls the platform via client methods.
+
+> Note: in a real DocuWare browser WebClient, the UI often behaves more like a frontend client calling the platform REST API directly, while the `.NET API` remains an optional SDK layer for external .NET integrations.
 
 ## Design Principles
 
