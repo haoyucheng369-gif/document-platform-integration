@@ -1,15 +1,15 @@
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
-using Microsoft.Extensions.Options;
+using Platform.DotNetApi.Auth;
 
-namespace Platform.DotNetApi.Auth;
+namespace ThirdParty.Consumer.Auth;
 
 public class KeycloakClientCredentialsTokenProvider : IAccessTokenProvider
 {
     private static readonly TimeSpan RefreshSkew = TimeSpan.FromSeconds(30);
 
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly DocuwareClientOptions _options;
+    private readonly IConfiguration _configuration;
     private readonly SemaphoreSlim _refreshLock = new(1, 1);
 
     private string? _accessToken;
@@ -17,10 +17,10 @@ public class KeycloakClientCredentialsTokenProvider : IAccessTokenProvider
 
     public KeycloakClientCredentialsTokenProvider(
         IHttpClientFactory httpClientFactory,
-        IOptions<DocuwareClientOptions> options)
+        IConfiguration configuration)
     {
         _httpClientFactory = httpClientFactory;
-        _options = options.Value;
+        _configuration = configuration;
     }
 
     public async Task<string> GetAccessTokenAsync()
@@ -39,11 +39,11 @@ public class KeycloakClientCredentialsTokenProvider : IAccessTokenProvider
             }
 
             var httpClient = _httpClientFactory.CreateClient();
-            using var response = await httpClient.PostAsync(_options.TokenEndpoint, new FormUrlEncodedContent(new Dictionary<string, string>
+            using var response = await httpClient.PostAsync(GetRequiredSetting("DocuwareClient:TokenEndpoint"), new FormUrlEncodedContent(new Dictionary<string, string>
             {
                 ["grant_type"] = "client_credentials",
-                ["client_id"] = _options.ClientId,
-                ["client_secret"] = _options.ClientSecret
+                ["client_id"] = GetRequiredSetting("DocuwareClient:ClientId"),
+                ["client_secret"] = GetRequiredSetting("DocuwareClient:ClientSecret")
             }));
 
             response.EnsureSuccessStatusCode();
@@ -63,6 +63,11 @@ public class KeycloakClientCredentialsTokenProvider : IAccessTokenProvider
         {
             _refreshLock.Release();
         }
+    }
+
+    private string GetRequiredSetting(string key)
+    {
+        return _configuration[key] ?? throw new InvalidOperationException($"{key} is required");
     }
 
     private sealed class TokenResponse

@@ -1,13 +1,15 @@
 ﻿using Platform.DotNetApi;
 using Platform.DotNetApi.Extensions;
 using Platform.DotNetApi.Models;
+using ThirdParty.Consumer.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddAuthorization();
-builder.Services.AddDocuwareClient(builder.Configuration);
+builder.Services.AddHttpClient();
+builder.Services.AddDocuwareClient<KeycloakClientCredentialsTokenProvider>(builder.Configuration);
 
 var app = builder.Build();
 

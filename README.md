@@ -42,7 +42,7 @@ flowchart TB
 
 - **Keycloak Identity Service**: OAuth2/OpenID Connect identity boundary used by both the browser-facing web client path and the SDK-based integration path.
 - **Platform.RestApi**: core REST platform exposing document resources and platform APIs. Document endpoints are protected with JWT bearer authentication issued by Keycloak.
-- **Platform.DotNetApi**: .NET SDK wrapper that encapsulates REST requests and exposes a developer-friendly client interface (`IDocuwareClient`).
+- **Platform.DotNetApi**: .NET SDK wrapper that encapsulates REST requests and exposes a developer-friendly client interface (`IDocuwareClient`). The SDK accepts a host-provided token provider and forwards the resulting bearer token to the REST API.
 - **Platform.WebClient**: MVC platform application that calls `Platform.RestApi` directly, similar to a browser-hosted product UI using platform endpoints.
 - **ThirdParty.Consumer**: external consumer app simulating a third-party integration that references the SDK DLL and calls the platform through client methods.
 
@@ -51,7 +51,7 @@ flowchart TB
 - A core REST API as the main platform boundary.
 - A typed .NET client library over the REST API.
 - A first-party web client that calls REST endpoints directly.
-- A third-party .NET consumer that calls the same REST platform through the SDK.
+- A third-party .NET consumer that calls the same REST platform through the SDK and supplies its own OAuth token provider.
 - Identity/token separation from platform operations.
 - Dependency-injected HTTP clients and configuration-driven service endpoints.
 - Docker Compose orchestration for the platform services.
@@ -73,9 +73,9 @@ document validation, and collaboration are outside the current scope.
 
 Authentication is represented as a separate boundary backed by Keycloak. The
 current repository includes a realm import with clients for the web client, REST
-API, and SDK path. REST API token validation and SDK client credentials token
-acquisition are enabled. WebClient OIDC cookie login is the next integration
-step.
+API, and SDK path. REST API token validation is enabled, and the SDK accepts a
+host-managed access token provider. WebClient OIDC cookie login is the next
+integration step.
 
 ## Running the Architecture
 
