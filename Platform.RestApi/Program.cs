@@ -18,8 +18,9 @@ builder.Services
         options.Audience = audience;
         options.MapInboundClaims = false;
         options.RequireHttpsMetadata = false;
-        // REST API 只信任 Keycloak 颁发给 platform-rest-api 的 JWT。
-        // 关闭默认 claim mapping 后，roles claim 会按 Keycloak 原始名称参与授权判断。
+
+        // REST API 只信任 Keycloak 签发给 platform-rest-api 的 JWT。
+        // Docker 下 issuer 可能表现为 keycloak:8080 或 localhost:8080，所以同时允许 internal/external issuer。
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidAudience = audience,
@@ -31,7 +32,7 @@ builder.Services
 
 builder.Services.AddAuthorization(options =>
 {
-    // 用户链路：普通文档允许普通用户和管理员访问；保密文档只允许管理员访问。
+    // 用户链路：普通文档允许 platform-user / platform-admin，保密文档只允许 platform-admin。
     options.AddPolicy("PlatformUser", policy =>
     {
         policy.RequireRole("platform-user", "platform-admin");
@@ -42,7 +43,7 @@ builder.Services.AddAuthorization(options =>
         policy.RequireRole("platform-admin");
     });
 
-    // 应用链路：第三方后台集成使用 client credentials，不代表某个用户。
+    // 应用链路：第三方后台集成使用 client credentials，不代表某个具体用户。
     options.AddPolicy("PlatformIntegration", policy =>
     {
         policy.RequireRole("platform-integration");

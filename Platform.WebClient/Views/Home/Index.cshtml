@@ -8,9 +8,36 @@
     <div class="d-flex align-items-center justify-content-between mb-3">
         <div>
             <h1 class="mb-1">@ViewData["Title"]</h1>
-            <div class="text-muted">Signed in as @User.Identity?.Name</div>
+            <div class="text-muted">Signed in as @Model.UserName</div>
         </div>
         <a asp-action="CreateSample" class="btn btn-primary">Create sample document</a>
+    </div>
+
+    <div class="border rounded p-3 mb-4 bg-light">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="small text-muted">User</div>
+                <div class="fw-semibold">@Model.UserName</div>
+            </div>
+            <div class="col-md-4">
+                <div class="small text-muted">Authentication</div>
+                <div class="fw-semibold">@Model.AuthenticationType</div>
+            </div>
+            <div class="col-md-4">
+                <div class="small text-muted">Roles</div>
+                @if (Model.Roles.Count == 0)
+                {
+                    <span class="badge text-bg-secondary">none</span>
+                }
+                else
+                {
+                    foreach (var role in Model.Roles)
+                    {
+                        <span class="badge text-bg-primary me-1">@role</span>
+                    }
+                }
+            </div>
+        </div>
     </div>
 
     <h2 class="h5">Standard documents</h2>

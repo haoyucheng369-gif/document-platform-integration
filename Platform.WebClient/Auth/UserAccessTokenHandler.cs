@@ -17,7 +17,7 @@ public class UserAccessTokenHandler : DelegatingHandler
         CancellationToken cancellationToken)
     {
         // 这里是 WebClient -> RestApi 的出站请求拦截点。
-        // token 来源是当前已登录用户的 cookie session，不是 WebClient 重新向 IdP 申请。
+        // token 来自当前用户的 cookie session，不是重新向 IdP 申请。
         var httpContext = _httpContextAccessor.HttpContext
             ?? throw new InvalidOperationException("No active HTTP context is available.");
 
@@ -27,7 +27,7 @@ public class UserAccessTokenHandler : DelegatingHandler
             throw new InvalidOperationException("The current user session does not contain an access token.");
         }
 
-        // RestApi 最终根据这个用户 access_token 里的 roles 判断 platform-user / platform-admin。
+        // RestApi 会根据这个用户 access_token 里的 roles 判断 platform-user / platform-admin。
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
         return await base.SendAsync(request, cancellationToken);
     }

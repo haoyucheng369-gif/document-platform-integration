@@ -40,6 +40,56 @@ flowchart TB
 > OIDC authorization code flow with a server-side cookie session. The `.NET SDK`
 > remains an optional wrapper for third-party .NET applications.
 
+## Authentication Flows
+
+### WebClient user login
+
+```mermaid
+sequenceDiagram
+    participant B as Browser
+    participant W as Platform.WebClient
+    participant I as Keycloak
+    participant R as Platform.RestApi
+
+    B->>W: Open WebClient
+    W->>I: Redirect to OIDC authorization endpoint
+    B->>I: Sign in as architect.user or architect.admin
+    I->>W: Authorization code callback
+    W->>I: Exchange code with client secret
+    I->>W: User access token + id token
+    W->>B: WebClient cookie session
+    B->>W: Request documents with cookie
+    W->>R: REST call with user bearer token
+    R->>R: Check platform-user / platform-admin
+    R->>W: Documents or 403
+    W->>B: Render HTML
+```
+
+In this flow, the browser does not call `Platform.RestApi` directly and does
+not hold the access token. The token is handled server-side by
+`Platform.WebClient`.
+
+### Third-party machine integration
+
+```mermaid
+sequenceDiagram
+    participant T as ThirdParty.Consumer
+    participant I as Keycloak
+    participant S as Platform.DotNetSdk
+    participant R as Platform.RestApi
+
+    T->>I: Client credentials token request
+    I->>T: Application access token
+    T->>S: Call SDK with current bearer token
+    S->>R: REST call with forwarded bearer token
+    R->>R: Check platform-integration
+    R->>S: Integration documents or 403
+    S->>T: Typed SDK result
+```
+
+In this flow, the token represents the registered third-party application, not
+an interactive user.
+
 ## Component Responsibilities
 
 - **Keycloak Identity Service**: OAuth2/OpenID Connect identity boundary used by both the browser-facing web client path and the SDK-based integration path.
@@ -102,6 +152,13 @@ This script builds and starts all services, then opens:
 - ThirdParty Consumer Swagger: `http://localhost:5002/swagger`
 - Keycloak Admin Console: `http://localhost:8080/admin/master/console/`
 
+Docker Compose uses these public URLs:
+
+- WebClient UI: `http://localhost:5001`
+- REST API Swagger: `http://localhost:5000/swagger`
+- ThirdParty Consumer Swagger: `http://localhost:5002/swagger`
+- Keycloak: `http://localhost:8080`
+
 Keycloak local admin credentials for the Admin Console:
 
 - Username: `admin`
@@ -146,6 +203,13 @@ dotnet run --project Platform.RestApi\Platform.RestApi.csproj
 dotnet run --project Platform.WebClient\Platform.WebClient.csproj
 dotnet run --project ThirdParty.Consumer\ThirdParty.Consumer.csproj
 ```
+
+When running projects individually, the local development URLs are:
+
+- WebClient UI: `http://localhost:5167`
+- REST API Swagger: `http://localhost:5079/swagger`
+- ThirdParty Consumer Swagger: `http://localhost:63293/swagger`
+- Keycloak remains `http://localhost:8080`
 
 ## Key Endpoints
 

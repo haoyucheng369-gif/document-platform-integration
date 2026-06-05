@@ -11,7 +11,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// WebClient 是服务器端 MVC 应用：浏览器只持有本应用的 cookie，
+// WebClient 是服务器端 MVC 应用：浏览器只保存本应用的 cookie。
 // 授权码换 token 的过程由后端完成，用户密码不会进入 WebClient。
 builder.Services
     .AddAuthentication(options =>
@@ -25,8 +25,8 @@ builder.Services
         var oidcSection = builder.Configuration.GetSection("Authentication:Oidc");
         var externalAuthority = oidcSection["ExternalAuthority"]?.TrimEnd('/');
 
-        // Authorization Code flow：confidential client 使用 client secret 换 token。
-        // SaveTokens=true 会把 access_token 保存到认证 ticket，后续调用 REST API 时再取出。
+        // 授权码模式：confidential client 使用 client secret 把 code 换成 token。
+        // SaveTokens=true 会把 access_token 保存到认证票据，后续调用 REST API 时再取出。
         options.Authority = oidcSection["Authority"];
         options.ClientId = oidcSection["ClientId"];
         options.ClientSecret = oidcSection["ClientSecret"];
@@ -45,8 +45,8 @@ builder.Services
             RoleClaimType = "roles"
         };
 
-        // Docker 场景下，WebClient 后端用容器内地址访问 Keycloak metadata/token endpoint，
-        // 但浏览器跳转必须使用宿主机可访问的 localhost 地址。
+        // Docker 场景下，后端通过容器 hostname 读取 Keycloak metadata。
+        // 浏览器运行在宿主机，所以重定向地址必须使用 localhost。
         if (!string.IsNullOrWhiteSpace(externalAuthority))
         {
             options.Events = new OpenIdConnectEvents
@@ -77,8 +77,8 @@ builder.Services.AddAuthorization();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddTransient<UserAccessTokenHandler>();
 
-// WebClient 调 Platform.RestApi 时不重新登录，也不自己生成 token。
-// UserAccessTokenHandler 会从当前用户 cookie session 里取 access_token 并加到 HTTP header。
+// WebClient 调 Platform.RestApi 时不会再申请第二个 token。
+// UserAccessTokenHandler 会读取当前用户保存的 access_token，并附加 Authorization header。
 builder.Services.AddHttpClient<IPlatformApiClient, PlatformApiClient>(client =>
 {
     var baseUrl = builder.Configuration["PlatformApi:BaseUrl"];
@@ -104,7 +104,7 @@ app.UseSwagger();
 app.UseSwaggerUI();
 app.UseStaticFiles();
 app.UseRouting();
-// 顺序很重要：先还原 cookie 中的用户身份，再执行授权判断。
+// 顺序很重要：先从 cookie 还原用户身份，再执行授权判断。
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -114,7 +114,7 @@ app.MapControllerRoute(
 
 app.Run();
 
-// 只改浏览器重定向地址，不改后端 metadata/token 调用地址。
+// 这里只改浏览器重定向地址；metadata 和 token 调用仍使用后端可访问的 authority。
 static string RewriteIssuerAddress(string issuerAddress, string internalAuthority, string externalAuthority)
 {
     return issuerAddress.StartsWith(internalAuthority, StringComparison.OrdinalIgnoreCase)
