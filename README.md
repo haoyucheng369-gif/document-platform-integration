@@ -112,7 +112,7 @@ an interactive user.
 - **Platform.RestApi**: core REST platform exposing document resources and platform APIs. Document endpoints are protected with JWT bearer authentication issued by Keycloak.
 - **Platform.DotNetSdk**: .NET SDK wrapper that encapsulates REST requests and exposes a developer-friendly client interface (`IPlatformClient`). The SDK accepts a host-provided token provider and attaches the returned bearer token to REST API requests. It does not own the OAuth client registration.
 - **Platform.WebClient**: MVC platform application using OIDC authorization code login, a server-side cookie session, and user access tokens when calling `Platform.RestApi`.
-- **ThirdParty.Consumer**: external consumer app simulating a third-party integration that references the SDK DLL and calls the platform through client methods.
+- **ThirdParty.Consumer**: external consumer app representing a third-party integration that references the SDK DLL and calls the platform through client methods.
 
 ## Architecture Coverage
 
@@ -236,7 +236,7 @@ When running projects individually, the local development URLs are:
 - WebClient `GET /` - sign in through Keycloak and read documents through the REST API
 - WebClient `GET /account/login` - start OIDC authorization code login
 - WebClient `POST /account/logout` - clear the local cookie session and sign out from Keycloak
-- ThirdParty Consumer `POST /api/token/client` - get a client credentials token for Swagger testing
+- ThirdParty Consumer `POST /api/token/client` - get a client credentials token for local verification
 - ThirdParty Consumer `GET /api/documents` - call the REST API through the SDK using the supplied bearer token
 - ThirdParty Consumer `POST /api/documents` - create a document through the SDK using the supplied bearer token
 - ThirdParty Consumer `GET /api/documents/confidential` - call the admin-only document endpoint through the SDK
@@ -244,7 +244,7 @@ When running projects individually, the local development URLs are:
 
 ## Why this architecture exists
 
-This project is intended to show practical platform design boundaries:
+This project documents practical platform design boundaries:
 
 - a backend service with a clear HTTP boundary
 - a reusable SDK abstraction layer
