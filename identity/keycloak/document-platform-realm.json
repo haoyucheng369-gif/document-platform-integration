@@ -1,6 +1,6 @@
 {
   "realm": "document-platform",
-  "displayName": "DocumentPlatformArchitect",
+  "displayName": "DocumentPlatformIntegration",
   "enabled": true,
   "registrationAllowed": false,
   "loginWithEmailAllowed": true,

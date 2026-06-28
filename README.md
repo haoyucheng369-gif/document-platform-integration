@@ -1,4 +1,4 @@
-# DocumentPlatformArchitect
+# DocumentPlatformIntegration
 
 This repository models an enterprise document platform integration architecture
 with a REST-first backend, an optional .NET SDK wrapper, a platform-facing web
