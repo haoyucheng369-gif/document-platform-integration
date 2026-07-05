@@ -16,31 +16,26 @@ The project focuses on integration shape rather than vendor internals: first-par
 ## Architecture
 
 ```mermaid
-flowchart LR
-    Browser[Browser]
-
-    subgraph Identity["Identity Provider"]
-        Keycloak[Keycloak OIDC / OAuth2]
+flowchart TB
+    subgraph A["A. Browser user flow"]
+        A1[A1 Browser opens Platform.WebClient]
+        A2[A2 WebClient redirects to Keycloak]
+        A3[A3 Keycloak returns user tokens]
+        A4[A4 WebClient calls Platform.RestApi]
+        A5[A5 RestApi validates user roles]
+        A6[A6 WebClient renders documents]
+        A1 --> A2 --> A3 --> A4 --> A5 --> A6
     end
 
-    subgraph Platform["Document Platform"]
-        WebClient[Platform.WebClient]
-        RestApi[Platform.RestApi]
-        Sdk[Platform.DotNetSdk]
+    subgraph B["B. Third-party integration flow"]
+        B1[B1 ThirdParty.Consumer requests app token]
+        B2[B2 Keycloak returns client credentials token]
+        B3[B3 Consumer calls Platform.DotNetSdk]
+        B4[B4 SDK calls Platform.RestApi]
+        B5[B5 RestApi validates integration role]
+        B6[B6 Consumer returns typed result]
+        B1 --> B2 --> B3 --> B4 --> B5 --> B6
     end
-
-    subgraph External["Third-party Application"]
-        Consumer[ThirdParty.Consumer]
-    end
-
-    Browser -->|authorization code login| WebClient
-    WebClient --> Keycloak
-    WebClient -->|user bearer token| RestApi
-    RestApi -.->|validate JWT roles| Keycloak
-
-    Consumer -->|client credentials| Keycloak
-    Consumer -->|typed SDK call| Sdk
-    Sdk -->|bearer token REST call| RestApi
 ```
 
 ## Authentication Flows
@@ -49,38 +44,44 @@ flowchart LR
 
 ```mermaid
 sequenceDiagram
-    participant Browser
-    participant Web as Platform.WebClient
-    participant IdP as Keycloak
-    participant API as Platform.RestApi
+    participant A1 as A1 Browser
+    participant A2 as A2 Platform.WebClient
+    participant A3 as A3 Keycloak
+    participant A4 as A4 Platform.RestApi
 
-    Browser->>Web: Open document platform
-    Web->>IdP: OIDC authorization request
-    IdP-->>Web: Authorization code callback
-    Web->>IdP: Exchange code
-    IdP-->>Web: User tokens
-    Web-->>Browser: Application cookie
-    Browser->>Web: Request documents
-    Web->>API: REST call with user bearer token
-    API-->>Web: Documents or 403
+    A1->>A2: Open document platform
+    A2->>A3: Start OIDC authorization code login
+    A3-->>A2: Return authorization code callback
+    A2->>A3: Exchange code for user tokens
+    A3-->>A2: Return user access token
+    A2-->>A1: Create server-side application cookie
+    A1->>A2: Request document page
+    A2->>A4: Call REST API with user bearer token
+    A4-->>A2: Return documents or 403
+    A2-->>A1: Render page
 ```
 
 ### Third-party Integration Flow
 
 ```mermaid
 sequenceDiagram
-    participant App as ThirdParty.Consumer
-    participant IdP as Keycloak
-    participant SDK as Platform.DotNetSdk
-    participant API as Platform.RestApi
+    participant B1 as B1 ThirdParty.Consumer
+    participant B2 as B2 Keycloak
+    participant B3 as B3 Platform.DotNetSdk
+    participant B4 as B4 Platform.RestApi
 
-    App->>IdP: Client credentials token request
-    IdP-->>App: Application access token
-    App->>SDK: Call typed client
-    SDK->>API: REST call with bearer token
-    API-->>SDK: Integration result or 403
-    SDK-->>App: Typed result
+    B1->>B2: Request client credentials token
+    B2-->>B1: Return application access token
+    B1->>B3: Call typed SDK client
+    B3->>B4: Forward bearer token to REST API
+    B4-->>B3: Return integration result or 403
+    B3-->>B1: Return typed result
 ```
+
+Flow labels:
+
+- `A*` steps are first-party browser and WebClient operations.
+- `B*` steps are third-party machine-to-machine integration operations.
 
 ## Component Responsibilities
 
