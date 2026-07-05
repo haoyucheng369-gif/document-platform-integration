@@ -132,9 +132,12 @@ Imported test accounts:
 
 ## Verify
 
-Expected results:
+Authorization checks:
 
-- `architect.user` can view standard documents.
-- `architect.admin` can view standard and confidential documents.
-- `thirdparty-consumer` client token can call `/api/documents/integration-export`.
-- `thirdparty-consumer` client token receives `403` for user-only document endpoints.
+| Check | Caller | Endpoint | Expected |
+| --- | --- | --- | --- |
+| `C1` | `architect.user` | standard documents | `200 OK` |
+| `C2` | `architect.user` | confidential documents | `403 Forbidden` |
+| `C3` | `architect.admin` | standard and confidential documents | `200 OK` |
+| `C4` | `thirdparty-consumer` client token | `/api/documents/integration-export` | `200 OK` |
+| `C5` | `thirdparty-consumer` client token | user-only document endpoints | `403 Forbidden` |
