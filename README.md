@@ -18,24 +18,28 @@ The project focuses on integration shape rather than vendor internals: first-par
 ```mermaid
 flowchart TB
     subgraph A["A. Browser user flow"]
-        A1[A1 Browser opens Platform.WebClient]
-        A2[A2 WebClient redirects to Keycloak]
-        A3[A3 Keycloak returns user tokens]
-        A4[A4 WebClient calls Platform.RestApi]
-        A5[A5 RestApi validates user roles]
-        A6[A6 WebClient renders documents]
+        direction LR
+        A1[A1 Browser]
+        A2[A2 WebClient]
+        A3[A3 Keycloak]
+        A4[A4 REST API]
+        A5[A5 Validate roles]
+        A6[A6 Render docs]
         A1 --> A2 --> A3 --> A4 --> A5 --> A6
     end
 
     subgraph B["B. Third-party integration flow"]
-        B1[B1 ThirdParty.Consumer requests app token]
-        B2[B2 Keycloak returns client credentials token]
-        B3[B3 Consumer calls Platform.DotNetSdk]
-        B4[B4 SDK calls Platform.RestApi]
-        B5[B5 RestApi validates integration role]
-        B6[B6 Consumer returns typed result]
+        direction LR
+        B1[B1 Consumer]
+        B2[B2 App token]
+        B3[B3 SDK call]
+        B4[B4 REST API]
+        B5[B5 Validate role]
+        B6[B6 Typed result]
         B1 --> B2 --> B3 --> B4 --> B5 --> B6
     end
+
+    A1 ~~~ B1
 ```
 
 ## Authentication Flows
